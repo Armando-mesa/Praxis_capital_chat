@@ -1,0 +1,630 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Praxis Capital — Chat Unificado</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c10;
+  --surface: #0d1117;
+  --elevated: #111827;
+  --border: #1c2433;
+  --border-hover: #2d3748;
+  --text: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #4b5563;
+  --coord: #3b82f6;
+  --coord-bg: #0d1f3c;
+  --valorador: #22c55e;
+  --valorador-bg: #0a1f0d;
+  --fiscal: #f97316;
+  --fiscal-bg: #1f0d00;
+  --abogado: #a855f7;
+  --abogado-bg: #140d1f;
+  --bancario: #06b6d4;
+  --bancario-bg: #001f24;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.header-left { display: flex; align-items: center; gap: 10px; }
+
+.logo {
+  width: 32px; height: 32px;
+  background: var(--coord);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white; letter-spacing: 0.02em;
+}
+
+.header-title { font-size: 13px; font-weight: 600; }
+.header-sub { font-size: 10px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+.pills { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.pill {
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border: 1px solid; cursor: pointer;
+  transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  opacity: 0.45;
+}
+.pill.active { opacity: 1; }
+.pill:hover { opacity: 1; transform: translateY(-1px); }
+
+.pill-auto { background: rgba(59,130,246,0.1); color: var(--coord); border-color: rgba(59,130,246,0.3); }
+.pill-valorador { background: rgba(34,197,94,0.1); color: var(--valorador); border-color: rgba(34,197,94,0.3); }
+.pill-fiscal { background: rgba(249,115,22,0.1); color: var(--fiscal); border-color: rgba(249,115,22,0.3); }
+.pill-abogado { background: rgba(168,85,247,0.1); color: var(--abogado); border-color: rgba(168,85,247,0.3); }
+.pill-bancario { background: rgba(6,182,212,0.1); color: var(--bancario); border-color: rgba(6,182,212,0.3); }
+
+.bloqueo-bar {
+  background: rgba(239,68,68,0.07);
+  border-bottom: 1px solid rgba(239,68,68,0.2);
+  padding: 6px 16px;
+  font-size: 10px; color: #fca5a5;
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+}
+
+.messages {
+  flex: 1; overflow-y: auto;
+  padding: 16px; display: flex;
+  flex-direction: column; gap: 14px;
+}
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.message { display: flex; gap: 10px; animation: fadeUp 0.25s ease; }
+.message.user { flex-direction: row-reverse; }
+
+.avatar {
+  width: 30px; height: 30px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0;
+}
+.av-user { background: var(--elevated); color: var(--text-secondary); border: 1px solid var(--border); }
+.av-coord { background: var(--coord-bg); color: var(--coord); border: 1px solid rgba(59,130,246,0.3); }
+.av-valorador { background: var(--valorador-bg); color: var(--valorador); border: 1px solid rgba(34,197,94,0.3); }
+.av-fiscal { background: var(--fiscal-bg); color: var(--fiscal); border: 1px solid rgba(249,115,22,0.3); }
+.av-abogado { background: var(--abogado-bg); color: var(--abogado); border: 1px solid rgba(168,85,247,0.3); }
+.av-bancario { background: var(--bancario-bg); color: var(--bancario); border: 1px solid rgba(6,182,212,0.3); }
+
+.msg-wrap { flex: 1; max-width: calc(100% - 42px); }
+
+.msg-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.msg-meta.right { justify-content: flex-end; }
+
+.msg-name { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.msg-time { font-size: 9px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+.agent-badge {
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; padding: 1px 7px; border-radius: 8px;
+  display: inline-block; margin-bottom: 6px;
+}
+.badge-coord { background: rgba(59,130,246,0.1); color: var(--coord); }
+.badge-valorador { background: rgba(34,197,94,0.1); color: var(--valorador); }
+.badge-fiscal { background: rgba(249,115,22,0.1); color: var(--fiscal); }
+.badge-abogado { background: rgba(168,85,247,0.1); color: var(--abogado); }
+.badge-bancario { background: rgba(6,182,212,0.1); color: var(--bancario); }
+
+.bubble {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  font-size: 13px; line-height: 1.65; color: var(--text);
+  word-break: break-word;
+}
+.bubble.user-bubble {
+  background: var(--coord-bg); border-color: rgba(59,130,246,0.2); color: #bfdbfe;
+}
+.bubble.bl-coord { border-left: 2px solid var(--coord); }
+.bubble.bl-valorador { border-left: 2px solid var(--valorador); }
+.bubble.bl-fiscal { border-left: 2px solid var(--fiscal); }
+.bubble.bl-abogado { border-left: 2px solid var(--abogado); }
+.bubble.bl-bancario { border-left: 2px solid var(--bancario); }
+
+.typing-wrap { display: flex; gap: 10px; align-items: flex-start; }
+.dots {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  display: flex; gap: 4px; align-items: center;
+}
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-muted); animation: bounce 1.2s infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+.welcome {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; gap: 18px; padding: 30px; text-align: center;
+}
+.welcome-icon {
+  width: 52px; height: 52px;
+  background: var(--coord-bg); border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 13px; display: flex; align-items: center;
+  justify-content: center; font-size: 24px;
+}
+.welcome h2 { font-size: 17px; font-weight: 700; }
+.welcome p { font-size: 12px; color: var(--text-secondary); max-width: 420px; line-height: 1.6; }
+
+.suggestions { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 500px; }
+.sug {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 9px; padding: 9px 13px;
+  font-size: 12px; color: var(--text-secondary);
+  cursor: pointer; text-align: left;
+  transition: all 0.15s; display: flex; align-items: center; gap: 9px;
+}
+.sug:hover { border-color: var(--border-hover); color: var(--text); transform: translateX(3px); }
+.sug-tag {
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; padding: 2px 6px; border-radius: 5px; flex-shrink: 0;
+}
+
+.input-area {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 12px 16px; flex-shrink: 0;
+}
+.input-box {
+  background: var(--elevated); border: 1px solid var(--border);
+  border-radius: 10px; display: flex; align-items: flex-end;
+  gap: 8px; padding: 8px 12px; transition: border-color 0.2s;
+}
+.input-box:focus-within { border-color: var(--coord); }
+
+textarea {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; line-height: 1.5; resize: none;
+  max-height: 100px; min-height: 20px;
+}
+textarea::placeholder { color: var(--text-muted); }
+
+.send-btn {
+  width: 30px; height: 30px; background: var(--coord);
+  border: none; border-radius: 7px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.send-btn:hover { background: #2563eb; }
+.send-btn:disabled { background: var(--border); cursor: not-allowed; }
+.send-btn svg { width: 13px; height: 13px; fill: white; }
+
+.hint { font-size: 9px; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 6px; text-align: center; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes bounce { 0%,80%,100% { transform:translateY(0); } 40% { transform:translateY(-5px); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">PC</div>
+    <div>
+      <div class="header-title">Praxis Capital — Consultoría Unificada</div>
+      <div class="header-sub">5 agentes · derivación automática · CIF B26931675</div>
+    </div>
+  </div>
+  <div class="pills">
+    <span class="pill pill-auto active" id="pill-auto" onclick="setAgent('auto')">🎯 Auto</span>
+    <span class="pill pill-valorador" id="pill-valorador" onclick="setAgent('valorador')">🔍 Valorador</span>
+    <span class="pill pill-fiscal" id="pill-fiscal" onclick="setAgent('fiscal')">🧾 Fiscal</span>
+    <span class="pill pill-abogado" id="pill-abogado" onclick="setAgent('abogado')">⚖️ Abogado</span>
+    <span class="pill pill-bancario" id="pill-bancario" onclick="setAgent('bancario')">🏦 Bancario</span>
+  </div>
+</div>
+
+<div class="bloqueo-bar">
+  ⚫ 2 bloqueos activos: deuda verbal no documentada + SL conjunta 50/50 sin pacto de socios · Ninguna operación puede avanzar
+</div>
+
+<div class="messages" id="messages">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">🎯</div>
+    <h2>Consultoría Praxis Capital</h2>
+    <p>Chat unificado con 5 agentes especializados. El sistema detecta automáticamente qué agente debe responder, o selecciónalo manualmente.</p>
+    <div class="suggestions">
+      <div class="sug" onclick="useSug('¿Qué tengo que resolver antes de poder comprar las participaciones del restaurante y el bar?')">
+        <span class="sug-tag" style="background:rgba(239,68,68,0.1);color:#ef4444">URGENTE</span>
+        ¿Qué tengo que resolver antes de comprar las participaciones?
+      </div>
+      <div class="sug" onclick="useSug('¿Cuánto pagaría de impuestos si compro el 30% de un restaurante por 45.000€ con precio mixto (25.000€ efectivo + 20.000€ deuda)?')">
+        <span class="sug-tag" style="background:rgba(249,115,22,0.1);color:#f97316">FISCAL</span>
+        ¿Cuánto pagaría de impuestos comprando el 30% de un restaurante por 45.000€?
+      </div>
+      <div class="sug" onclick="useSug('Necesito el borrador de un reconocimiento de deuda para documentar la deuda verbal del socio hostelero conmigo')">
+        <span class="sug-tag" style="background:rgba(168,85,247,0.1);color:#a855f7">JURÍDICO</span>
+        Necesito el borrador del reconocimiento de deuda del socio hostelero
+      </div>
+      <div class="sug" onclick="useSug('¿Hay ayudas o subvenciones disponibles ahora mismo para financiar la adquisición de participaciones en un restaurante en Madrid?')">
+        <span class="sug-tag" style="background:rgba(6,182,212,0.1);color:#06b6d4">BANCARIO</span>
+        ¿Hay ayudas disponibles para financiar esta adquisición?
+      </div>
+      <div class="sug" onclick="useSug('¿Qué documentos debo pedir al vendedor para valorar el restaurante y el bar?')">
+        <span class="sug-tag" style="background:rgba(34,197,94,0.1);color:#22c55e">VALORACIÓN</span>
+        ¿Qué documentos debo pedir al vendedor para valorar los negocios?
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-box">
+    <textarea id="inp"
+      placeholder="Escribe tu consulta... el sistema detecta qué agente debe responder"
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="resize(this)"></textarea>
+    <button class="send-btn" id="sendbtn" onclick="sendMsg()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="hint">Enter para enviar · Shift+Enter nueva línea · Selecciona agente para forzar derivación</div>
+</div>
+
+<script>
+// ============================================================
+// CONTEXTO BASE
+// ============================================================
+const CTX = `CONTEXTO PRAXIS CAPITAL LML SL:
+Holding: CIF B26931675 · CNAE 6421 · Capital 3.000€ · Sin actividad previa
+Administrador: Luis Armando Mesa Lebron · DNI 11860193J · Salario ~44.574€/año (T4S Advance Solutions SL)
+Domicilio: Calle Embalse de San Juan 15, 3ºD, 28051 Madrid
+IS alta 13/04/2026 · Cargo administrador GRATUITO (pendiente modificar estatutos)
+IRPF 2024: base liquidable general 39.575€ · devolución 907€
+Hijos: Noa (2014) y Erick (2018) · pensión alimenticia 7.920€/año
+Trading acciones cotizadas como persona física
+
+BLOQUEOS ACTIVOS (ninguna operación puede avanzar sin resolver):
+1. Deuda verbal con socio hostelero NO documentada → Agente Abogado
+2. SL conjunta 50/50 sin pacto de socios ni deadlock clause → Agente Abogado
+
+PENDIENTES URGENTES:
+1. Ampliar objeto social (préstamos intragrupo, servicios gestión, consultoría)
+2. Modificar estatutos para retribución administrador
+3. Contratar gestoría · 4. Domiciliación empresarial
+
+OPERACIÓN OBJETIVO: Restaurante + Bar · Madrid · licencia 2h
+Mismo propietario · 25-49% a adquirir · precio mixto (efectivo + deuda verbal compensada)
+
+CLÁUSULAS INNEGOCIABLES EN TODO CONTRATO:
+1. Derechos de información periódica auditada
+2. Derecho de veto en decisiones extraordinarias
+3. Derechos de arrastre drag-along y tag-along
+
+ESTRATEGIA FISCAL: no cobrar salario · reinvertir todo · dividendos solo cuando Fiscal+Abogado confirmen óptimo`;
+
+// ============================================================
+// AGENTES
+// ============================================================
+const AGENTS = {
+  coord: {
+    name: 'Coordinador', emoji: '🎯', avatar: 'CO',
+    color: 'var(--coord)', cls: 'bl-coord', badge: 'badge-coord', av: 'av-coord',
+    prompt: `Eres el Coordinador del ecosistema de inversión de Praxis Capital LML SL. Tienes conocimiento completo de todos los agentes especializados del ecosistema.
+${CTX}
+Tu función: analizar cada pregunta y responder con la profundidad del agente más adecuado. Indica siempre qué agente está respondiendo. Si los bloqueos activos son relevantes, recuérdalos. Responde en español, de forma directa y precisa.`
+  },
+  valorador: {
+    name: 'Valorador', emoji: '🔍', avatar: 'VA',
+    color: 'var(--valorador)', cls: 'bl-valorador', badge: 'badge-valorador', av: 'av-valorador',
+    prompt: `Eres el Agente Valorador especializado en análisis financiero de SLs hosteleras españolas para Praxis Capital LML SL.
+${CTX}
+Especialidad: EBITDA normalizado (obligatorio siempre), múltiplos 2025-2026 (bar barrio 2.5-4.5x, restaurante tradicional 3-5x, bar copas 3-5x, discoteca ZPAE 5-10x), benchmarks hostelería (food cost 28-32% restaurante, coste personal 35-40%, EBITDA/ventas 5-10%), normativa licencias Madrid, ZPAE, Verifactu (plazo IS: 01/01/2027), checklist documentos por subtipo.
+REGLA CRÍTICA: Sin CCAA + Modelo 200 + Modelo 390 mínimo → bloqueo del análisis y solicitud de documentación.
+Responde en español, directo, con datos concretos.`
+  },
+  fiscal: {
+    name: 'Fiscal', emoji: '🧾', avatar: 'FI',
+    color: 'var(--fiscal)', cls: 'bl-fiscal', badge: 'badge-fiscal', av: 'av-fiscal',
+    prompt: `Eres el Agente Fiscal especializado en fiscalidad de compraventa de participaciones SL y holdings españolas para Praxis Capital LML SL.
+${CTX}
+Especialidad:
+MÓDULO A — Operaciones corporativas:
+- ITP: transmisión participaciones SL → exenta (art.45 RDL 1/1993). Excepción: inmuebles >50% activo no afectos
+- Ganancia patrimonial vendedor persona física: base ahorro IRPF — tipos 2025: 19% (hasta 6k€), 21% (6k-50k€), 23% (50k-200k€), 27% (200k-300k€), 30% (>300k€)
+- Operaciones vinculadas art. 18 LIS: precio debe estar en rango de mercado
+- Precio mixto: deuda compensada debe estar documentada o Hacienda la califica como liberalidad
+- Dividendos holding ← filiales: exención 95% IS si ≥5% participación + ≥1 año tenencia (art. 21 LIS) → tipo efectivo real 1,25%
+- Retención 19% cuando comprador es persona jurídica (Praxis Capital)
+- Sustancia económica holding: riesgo ALTO por nueva constitución sin actividad previa
+
+MÓDULO B — IRPF personal (solo cuando el usuario lo pide explícitamente):
+- Trading acciones cotizadas: FIFO, regla valores homogéneos (2 meses para cotizadas, 1 año para no cotizadas)
+- Compensación pérdidas entre ejercicios (hasta 25% rendimientos capital mobiliario)
+- Pensión alimenticia: escala separada reduce tipo efectivo
+- Deducciones autonómicas Madrid
+- Plan de pensiones: reduce base liquidable general (límite 1.500€ + 8.500€ si hay empresa)
+
+REGLA: Si base jurídica insuficiente (deuda verbal, precio mixto sin documentar) → BLOQUEO y deriva al Agente Abogado.
+Responde en español, con cálculos concretos cuando sea posible.`
+  },
+  abogado: {
+    name: 'Abogado', emoji: '⚖️', avatar: 'AB',
+    color: 'var(--abogado)', cls: 'bl-abogado', badge: 'badge-abogado', av: 'av-abogado',
+    prompt: `Eres el Agente Abogado Mercantilista especializado en operaciones societarias, laborales y AML para Praxis Capital LML SL.
+${CTX}
+ORDEN BLOQUEANTE OBLIGATORIO (respetar siempre):
+1. Documentar deuda verbal → reconocimiento de deuda notarial o contrato préstamo
+2. Pacto de socios SL conjunta 50/50 con deadlock clause
+3. Contrato compraventa participaciones con 3 cláusulas innegociables
+
+MERCANTIL:
+- Revisión estatutos SL objetivo: restricciones transmisión, quórums, retribución administrador, causas exclusión
+- Contrato compraventa: información auditada + veto decisiones extraordinarias + drag-along/tag-along + reps & warranties + put option + no competencia
+- Pacto de socios: deadlock clause (mediación → ruleta rusa), drag-along, tag-along, no competencia, protocolo salida
+- Borradores: reconocimiento deuda, pacto socios, contrato compraventa, acta decisión inversión holding
+
+LABORAL:
+- Convenio colectivo hostelería: verificación salarios vs tablas por categoría
+- Pasivo laboral oculto: 33 días/año × antigüedad (máx 24 mensualidades)
+- Subrogación art. 44 ET en traspasos de negocio
+- Contratos temporales irregulares (encadenamiento ilegal)
+
+AML:
+- Titular real actualizado en Registro Mercantil
+- Precio mixto con deuda verbal: riesgo AML + SEPBLAC
+- Umbral 10.000€ efectivo → obligación comunicación SEPBLAC (Ley 10/2010)
+
+REGLA: Si hay deuda verbal → BLOQUEO inmediato + oferta de borrador de reconocimiento de deuda.
+Responde en español, directo, con referencias legales concretas cuando aplique.`
+  },
+  bancario: {
+    name: 'Bancario', emoji: '🏦', avatar: 'BA',
+    color: 'var(--bancario)', cls: 'bl-bancario', badge: 'badge-bancario', av: 'av-bancario',
+    prompt: `Eres el Agente Bancario especializado en financiación de adquisiciones y búsqueda de ayudas para Praxis Capital LML SL.
+${CTX}
+PRIORIDAD ESTRICTA DE FINANCIACIÓN (nunca saltarse el orden):
+1. Subvenciones y ayudas NO REEMBOLSABLES
+   - ENISA Jóvenes Emprendedores (<40 años ✅ administrador tiene 35): 25.000-75.000€ préstamo participativo
+   - ENISA Emprendedores: 25.000-300.000€
+   - Kit Digital: hasta 12.000€ para SLs hosteleras objetivo (valor añadido como inversor)
+   - CAM ayudas pymes Madrid: verificar convocatorias activas
+   - Next Generation EU hostelería: digitalización y sostenibilidad
+2. ICO + SGR Avalmadrid
+   - ICO Empresas y Emprendedores: hasta 12,5M€ con tipos bonificados
+   - Avalmadrid SGR: aval hasta 80% → mejora condiciones bancarias
+   - Combinación ICO + SGR = condiciones óptimas para holding nueva sin historial
+3. Banca convencional (mínimo 3 entidades — Sabadell como referencia base)
+
+PERFIL FINANCIERO DEL AVALISTA:
+- Salario neto: ~2.900€/mes
+- Compromisos fijos: 660€/mes pensión alimenticia
+- Capacidad máx. endeudamiento adicional: ~355€/mes (~22.000-25.000€ a 7 años al 5% TAE)
+- CIRBE: limpia · Holding: sin historial crediticio → garantías personales necesarias
+
+RATIOS OBLIGATORIOS en todo análisis:
+- DSCR ≥ 1,2x (flujos del negocio / cuota anual préstamo) — mínimo bancario
+- LTV máximo 75%
+- Deuda/EBITDA máximo 4x
+
+REGLA: Nunca recomiendas banca convencional sin haber analizado primero ayudas gratuitas e ICO.
+Responde en español con importes y condiciones concretas.`
+  }
+};
+
+// ============================================================
+// DETECCIÓN AUTOMÁTICA DE AGENTE
+// ============================================================
+const KW = {
+  valorador: ['valorar','valor','ebitda','múltiplo','multiplo','cuánto vale','cuanto vale','documentos pedir','red flag','benchmark','food cost','margen','facturación','ccaa','modelo 390','modelo 200','licencia','zpae','verifactu','checklist','qué pedir','due diligence','analizar negocio','restaurante vale','bar vale'],
+  fiscal: ['impuesto','fiscal','irpf','itp','iva','tributar','hacienda','aeat','renta','declaración','ganancias','plusvalía','dividendo','retención','sociedades','cuánto pago','cuanto pago','cuánto pagaría','cuanto pagaria','deducción','holding fiscal','operación vinculada','art 21','acciones','trading','bolsa','pérdidas','plan pensiones','precio mixto fiscal','tributación','base imponible'],
+  abogado: ['contrato','estatuto','pacto','cláusula','clausula','drag','tag','veto','borrador','redactar','reconocimiento','deuda','notario','registro mercantil','convenio','nómina','trabajador','despido','subrogación','aml','blanqueo','titular real','sepblac','legal','jurídico','deadlock','pasivo laboral','antigüedad','categoría profesional','salario mínimo'],
+  bancario: ['financiar','financiación','financiacion','préstamo','prestamo','crédito','credito','banco','ico','enisa','subvención','subvencion','ayuda','sgr','aval','dossier bancario','dscr','tipo interés','kit digital','next generation','sabadell','avalmadrid','capacidad endeudamiento','cuota','no reembolsable','gratis','convocatoria','fondo']
+};
+
+function detectAgent(text) {
+  const t = text.toLowerCase();
+  const scores = { valorador:0, fiscal:0, abogado:0, bancario:0 };
+  for (const [ag, kws] of Object.entries(KW)) {
+    for (const k of kws) if (t.includes(k)) scores[ag]++;
+  }
+  const max = Math.max(...Object.values(scores));
+  if (max === 0) return 'coord';
+  return Object.entries(scores).find(([,v]) => v === max)[0];
+}
+
+// ============================================================
+// ESTADO
+// ============================================================
+let selAgent = 'auto';
+let history = [];
+let loading = false;
+
+function setAgent(a) {
+  selAgent = a;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('pill-' + a)?.classList.add('active');
+  const ph = {
+    auto: 'Escribe tu consulta... el sistema detecta qué agente debe responder',
+    valorador: 'Preguntando al Agente Valorador...',
+    fiscal: 'Preguntando al Agente Fiscal...',
+    abogado: 'Preguntando al Agente Abogado...',
+    bancario: 'Preguntando al Agente Bancario...'
+  };
+  document.getElementById('inp').placeholder = ph[a] || ph.auto;
+}
+
+// ============================================================
+// UI
+// ============================================================
+function hideWelcome() {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+}
+
+function fmt(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`(.*?)`/g,'<code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-family:DM Mono,monospace;font-size:11px">$1</code>')
+    .replace(/\n/g,'<br>');
+}
+
+function addUserMsg(text) {
+  hideWelcome();
+  const m = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'message user';
+  d.innerHTML = `
+    <div class="msg-wrap">
+      <div class="msg-meta right">
+        <span class="msg-time">${getTime()}</span>
+        <span class="msg-name" style="color:var(--text-secondary)">Tú</span>
+      </div>
+      <div class="bubble user-bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>
+    <div class="avatar av-user">TÚ</div>`;
+  m.appendChild(d);
+  m.scrollTop = m.scrollHeight;
+}
+
+function addAgentMsg(agent, text) {
+  const a = AGENTS[agent] || AGENTS.coord;
+  const m = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'message';
+  d.innerHTML = `
+    <div class="avatar ${a.av}">${a.avatar}</div>
+    <div class="msg-wrap">
+      <div class="msg-meta">
+        <span class="msg-name" style="color:${a.color}">${a.emoji} ${a.name}</span>
+        <span class="msg-time">${getTime()}</span>
+      </div>
+      <div class="bubble ${a.cls}">
+        <div class="agent-badge ${a.badge}">${a.emoji} Responde: ${a.name}</div>
+        ${fmt(text)}
+      </div>
+    </div>`;
+  m.appendChild(d);
+  m.scrollTop = m.scrollHeight;
+}
+
+function showTyping(agent) {
+  hideWelcome();
+  const a = AGENTS[agent] || AGENTS.coord;
+  const m = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'message'; d.id = 'typing';
+  d.innerHTML = `
+    <div class="avatar ${a.av}">${a.avatar}</div>
+    <div class="typing-wrap"><div class="dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div></div>`;
+  m.appendChild(d);
+  m.scrollTop = m.scrollHeight;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function resize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function useSug(text) {
+  document.getElementById('inp').value = text;
+  resize(document.getElementById('inp'));
+  sendMsg();
+}
+
+// ============================================================
+// SEND — llama a /api/chat (Cloudflare Worker)
+// ============================================================
+async function sendMsg() {
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if (!text || loading) return;
+
+  const targetAgent = selAgent === 'auto' ? detectAgent(text) : selAgent;
+  const a = AGENTS[targetAgent] || AGENTS.coord;
+
+  inp.value = '';
+  inp.style.height = 'auto';
+  loading = true;
+  document.getElementById('sendbtn').disabled = true;
+
+  addUserMsg(text);
+  history.push({ role: 'user', content: text });
+
+  showTyping(targetAgent);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: a.prompt,
+        messages: history.slice(-10)
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Error ${res.status}: ${err}`);
+    }
+
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Sin respuesta del servidor.';
+
+    history.push({ role: 'assistant', content: reply });
+    if (history.length > 20) history = history.slice(-20);
+
+    hideTyping();
+    addAgentMsg(targetAgent, reply);
+
+  } catch (err) {
+    hideTyping();
+    addAgentMsg('coord', `⚠️ Error de conexión: ${err.message}\n\nVerifica que el Cloudflare Worker está desplegado correctamente y que la variable ANTHROPIC_API_KEY está configurada.`);
+  }
+
+  loading = false;
+  document.getElementById('sendbtn').disabled = false;
+  inp.focus();
+}
+</script>
+</body>
+</html>
