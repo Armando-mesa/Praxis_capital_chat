@@ -6,12 +6,6 @@ compatibility_date = "2026-06-03"
 directory = "./Docs"
 binding = "ASSETS"
 
-[observability.logs]
-enabled = true
-invocation_logs = true
-
-[observability.traces]
-enabled = false
 
 [observability]
 enabled = false
