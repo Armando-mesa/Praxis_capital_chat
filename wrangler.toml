@@ -3,5 +3,5 @@ main = "worker.js"
 compatibility_date = "2026-06-03"
 
 [assets]
-directory = "./public"
+directory = "./Docs"
 binding = "ASSETS"
